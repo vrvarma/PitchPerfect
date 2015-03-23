@@ -14,12 +14,14 @@ class PlaySoundsViewController: UIViewController {
     var engine :AVAudioEngine!
     var audioFile:AVAudioFile!
     var recordedAudio:RecordedAudio!
+    var audioPlayerNode:AVAudioPlayerNode!
     
     override func viewDidLoad() {
         
-        super.viewDidLoad()        
+        super.viewDidLoad()
         var error:NSError?
         engine=AVAudioEngine()
+        audioPlayerNode = AVAudioPlayerNode()
         audioFile = AVAudioFile(forReading: recordedAudio.filePathUrl, error: &error)
         
     }
@@ -31,46 +33,78 @@ class PlaySoundsViewController: UIViewController {
     
     @IBAction func playSlow(sender: UIButton) {
         
-        playChangedRatePitchAudio(0.5,pitch:1)
+        var changePitchEffect = AVAudioUnitTimePitch()
+        changePitchEffect.pitch = 1.0
+        changePitchEffect.rate=0.5
+        playAudioEffect(changePitchEffect)
     }
     @IBAction func playFast(sender: UIButton) {
         
-        playChangedRatePitchAudio(1.5,pitch:1)
+        var changePitchEffect = AVAudioUnitTimePitch()
+        changePitchEffect.pitch = 1.0
+        changePitchEffect.rate=1.5
+        playAudioEffect(changePitchEffect)
     }
     @IBAction func playChipmunkAudio(sender: UIButton) {
         
-        playChangedRatePitchAudio(1,pitch:1000)
+        var changePitchEffect = AVAudioUnitTimePitch()
+        changePitchEffect.pitch = 1000
+        changePitchEffect.rate=1
+        playAudioEffect(changePitchEffect)
+        
     }
     @IBAction func playDarthVaderAudio(sender: UIButton) {
         
-        playChangedRatePitchAudio(1,pitch:-1000)
+        var changePitchEffect = AVAudioUnitTimePitch()
+        changePitchEffect.pitch = -1000
+        changePitchEffect.rate=1
+        playAudioEffect(changePitchEffect)
+    }
+    @IBAction func playWithEcho(sender: UIButton) {
+        
+        var echoEffect = AVAudioUnitDelay()
+        echoEffect.delayTime = 0.5
+        echoEffect.feedback = 75
+        echoEffect.wetDryMix = 50
+        playAudioEffect(echoEffect)
     }
     
-    func playChangedRatePitchAudio(rate:Float ,pitch:Float){
+    @IBAction func playReverb(sender: UIButton) {
         
-        engine.stop()
-        engine.reset()
-        var changePitchEffect = AVAudioUnitTimePitch()
-        changePitchEffect.pitch = pitch
-        changePitchEffect.rate=rate
+        var reverbEffect = AVAudioUnitReverb()
+        reverbEffect.loadFactoryPreset(AVAudioUnitReverbPreset.LargeHall)
+        reverbEffect.wetDryMix = 42.0
+        playAudioEffect(reverbEffect)
+    }
+    
+    //Function to play the audio given the audioTimeEffect
+    func playAudioEffect(avAudioEffect: AVAudioNode){
         
-        var audioPlayerNode = AVAudioPlayerNode()
+        resetAudio()
         
+        audioPlayerNode = AVAudioPlayerNode()
         engine.attachNode(audioPlayerNode)
+        engine.attachNode(avAudioEffect)
         
-        engine.attachNode(changePitchEffect)
+        engine.connect(audioPlayerNode, to: avAudioEffect, format: nil)
+        engine.connect(avAudioEffect, to: engine.outputNode, format: nil)
         
-        engine.connect(audioPlayerNode, to: changePitchEffect, format: nil)
-        engine.connect(changePitchEffect, to: engine.outputNode, format: nil)
         audioPlayerNode.scheduleFile(audioFile, atTime: nil, completionHandler: nil)
         engine.startAndReturnError(nil)
         
         audioPlayerNode.play()
     }
     
-    @IBAction func stopAudio(sender: UIButton) {
+    func resetAudio(){
+        
+        audioPlayerNode.stop()
         engine.stop()
         engine.reset()
+    }
+    
+    @IBAction func stopAudio(sender: UIButton) {
+        
+        resetAudio()
     }
     
 }
