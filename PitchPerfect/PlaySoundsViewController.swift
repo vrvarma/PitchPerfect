@@ -64,7 +64,7 @@ class PlaySoundsViewController: UIViewController {
         
         var echoEffect = AVAudioUnitDelay()
         echoEffect.delayTime = 0.5
-        echoEffect.feedback = 75
+        echoEffect.feedback = 60
         echoEffect.wetDryMix = 50
         playAudioEffect(echoEffect)
     }
