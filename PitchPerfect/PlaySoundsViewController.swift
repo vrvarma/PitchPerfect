@@ -22,7 +22,12 @@ class PlaySoundsViewController: UIViewController {
         var error:NSError?
         engine=AVAudioEngine()
         audioPlayerNode = AVAudioPlayerNode()
-        audioFile = AVAudioFile(forReading: recordedAudio.filePathUrl, error: &error)
+        do {
+            audioFile = try AVAudioFile(forReading: recordedAudio.filePathUrl)
+        } catch let error1 as NSError {
+            error = error1
+            audioFile = nil
+        }
         
     }
     
@@ -33,21 +38,21 @@ class PlaySoundsViewController: UIViewController {
     
     @IBAction func playSlow(sender: UIButton) {
         
-        var changePitchEffect = AVAudioUnitTimePitch()
+        let changePitchEffect = AVAudioUnitTimePitch()
         changePitchEffect.pitch = 1.0
         changePitchEffect.rate=0.5
         playAudioEffect(changePitchEffect)
     }
     @IBAction func playFast(sender: UIButton) {
         
-        var changePitchEffect = AVAudioUnitTimePitch()
+        let changePitchEffect = AVAudioUnitTimePitch()
         changePitchEffect.pitch = 1.0
         changePitchEffect.rate=1.5
         playAudioEffect(changePitchEffect)
     }
     @IBAction func playChipmunkAudio(sender: UIButton) {
         
-        var changePitchEffect = AVAudioUnitTimePitch()
+        let changePitchEffect = AVAudioUnitTimePitch()
         changePitchEffect.pitch = 1000
         changePitchEffect.rate=1
         playAudioEffect(changePitchEffect)
@@ -55,14 +60,14 @@ class PlaySoundsViewController: UIViewController {
     }
     @IBAction func playDarthVaderAudio(sender: UIButton) {
         
-        var changePitchEffect = AVAudioUnitTimePitch()
+        let changePitchEffect = AVAudioUnitTimePitch()
         changePitchEffect.pitch = -1000
         changePitchEffect.rate=1
         playAudioEffect(changePitchEffect)
     }
     @IBAction func playWithEcho(sender: UIButton) {
         
-        var echoEffect = AVAudioUnitDelay()
+        let echoEffect = AVAudioUnitDelay()
         echoEffect.delayTime = 0.5
         echoEffect.feedback = 60
         echoEffect.wetDryMix = 50
@@ -71,7 +76,7 @@ class PlaySoundsViewController: UIViewController {
     
     @IBAction func playReverb(sender: UIButton) {
         
-        var reverbEffect = AVAudioUnitReverb()
+        let reverbEffect = AVAudioUnitReverb()
         reverbEffect.loadFactoryPreset(AVAudioUnitReverbPreset.LargeHall)
         reverbEffect.wetDryMix = 42.0
         playAudioEffect(reverbEffect)
@@ -90,7 +95,10 @@ class PlaySoundsViewController: UIViewController {
         engine.connect(avAudioEffect, to: engine.outputNode, format: nil)
         
         audioPlayerNode.scheduleFile(audioFile, atTime: nil, completionHandler: nil)
-        engine.startAndReturnError(nil)
+        do {
+            try engine.start()
+        } catch _ {
+        }
         
         audioPlayerNode.play()
     }
